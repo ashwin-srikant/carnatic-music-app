@@ -1,7 +1,14 @@
-# Carnatic Music App
+# Korvai Compass
 
-A project for exploring and enjoying Carnatic music.
+A repertoire-based practice app for Carnatic music students learning kalpana swaram and korvai eDam.
 
-## Getting started
+## Run locally
 
-Project setup instructions will be added as the application takes shape.
+Use a current Node.js release, then run:
+
+```bash
+npm install
+npm run dev
+```
+
+The production site deploys to GitHub Pages when changes are pushed to `main`.
