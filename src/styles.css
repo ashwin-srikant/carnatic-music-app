@@ -19,4 +19,7 @@ label, .tala-summary { display: grid; gap: 8px; font-size: .9rem; font-weight: 7
 .answer { margin-top: 18px; }
 .answer.correct { background: #245e50; }
 .answer.incorrect { background: #573d35; }
+.math-help { margin-top: 16px; padding-top: 12px; border-top: 1px solid #ffffff36; }
+.math-help p { margin: 9px 0; font-size: .9rem; line-height: 1.45; }
+.math-help strong { color: #f3c977; }
 @media (max-width: 600px) { main { width: min(100% - 24px, 900px); padding-top: 36px; }.card { padding: 20px; }.setup { grid-template-columns: 1fr; }.section-heading { display: block; }.hint { display: block; margin-top: -8px; }.speed-options { grid-template-columns: 1fr; }.beat-grid { grid-template-columns: repeat(var(--beats), 74px); }.lengths p { margin: 0; } }

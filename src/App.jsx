@@ -23,6 +23,8 @@ export default function App() {
   const swaramsPerBeat = isTisraGati ? speed * 1.5 : speed
   const total = pattern.reduce((sum, section) => sum + (section === 'A' ? Number(aLength) : Number(bLength)), 0)
   const cycleSwarams = tala.beats * swaramsPerBeat
+  const completeCycles = Math.floor(total / cycleSwarams)
+  const remainder = mod(total, cycleSwarams)
   const startPosition = mod(landing - total, cycleSwarams)
   const cycles = Math.ceil(total / cycleSwarams)
   const sequenceText = pattern.join('')
@@ -30,6 +32,7 @@ export default function App() {
   const landingSubdivision = (landing % swaramsPerBeat) + 1
   const startBeat = Math.floor(startPosition / swaramsPerBeat) + 1
   const startSubdivision = (startPosition % swaramsPerBeat) + 1
+  const guessDistance = startGuess === null ? null : mod(landing - startGuess, cycleSwarams)
 
   const answer = useMemo(() => ({ total, cycles, startBeat, startSubdivision }), [total, cycles, startBeat, startSubdivision])
 
@@ -104,7 +107,7 @@ export default function App() {
         </div>
         <button className="answer-button" disabled={startGuess === null} onClick={() => setAnswerStatus(startGuess === startPosition ? 'correct' : 'incorrect')}>Check answer</button>
         {answerStatus === 'correct' && <div className="answer correct"><span>Correct</span><strong>Start on beat {answer.startBeat}, swaram {answer.startSubdivision}</strong><p>The pattern has {answer.total} swarams, spanning {answer.cycles} tala cycle{answer.cycles === 1 ? '' : 's'} at this speed.</p></div>}
-        {answerStatus === 'incorrect' && <div className="answer incorrect"><span>Not quite</span><strong>Try counting backwards again</strong><p>Adjust your starting point and check again.</p></div>}
+        {answerStatus === 'incorrect' && <div className="answer incorrect"><span>Not quite</span><strong>Try counting backwards again</strong><div className="math-help"><p><strong>1.</strong> One {song.talam} cycle has {cycleSwarams} swarams: {tala.beats} beats × {swaramsPerBeat} swarams per beat.</p><p><strong>2.</strong> {total} swarams = {completeCycles} full cycle{completeCycles === 1 ? '' : 's'} + {remainder} remaining swaram{remainder === 1 ? '' : 's'}.</p><p><strong>3.</strong> Count {remainder} subdivision{remainder === 1 ? '' : 's'} backward from the landing point. Your choice is {guessDistance} subdivision{guessDistance === 1 ? '' : 's'} back.</p></div></div>}
       </section>
       <footer>Initial repertoire drawn from your Krithis and tala reference sheets.</footer>
     </main>
