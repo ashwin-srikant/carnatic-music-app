@@ -1,6 +1,6 @@
 export const talams = {
   'Adi': { beats: 8, description: '8 aksharas' },
-  'Rupakam': { beats: 6, description: '6 aksharas' },
+  'Rupakam': { beats: 3, description: '3 aksharas' },
   'Misra Chapu': { beats: 7, description: '7 aksharas' },
   'Khanda Chapu': { beats: 5, description: '5 aksharas' },
   'Chatusra Ekam': { beats: 4, description: '4 aksharas' },
