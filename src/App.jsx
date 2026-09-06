@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { songs, talams } from './songs.js'
 
 const defaultPattern = ['A', 'B', 'A', 'B', 'A']
@@ -16,8 +16,31 @@ export default function App() {
   const [landing, setLanding] = useState(0)
   const [startGuess, setStartGuess] = useState(null)
   const [answerStatus, setAnswerStatus] = useState(null)
+  const [isUnlocked, setIsUnlocked] = useState(() => sessionStorage.getItem('korvai-compass-access') === 'granted')
+  const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState(false)
+  const [repertoire, setRepertoire] = useState(null)
+  const [repertoireLoading, setRepertoireLoading] = useState(false)
+  const [studentName, setStudentName] = useState('')
 
-  const song = songs.find((item) => item.title === songTitle)
+  async function loadRepertoire() {
+    setRepertoireLoading(true)
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}repertoire.json?updated=${Date.now()}`, { cache: 'no-store' })
+      if (!response.ok) throw new Error('Unable to load repertoire')
+      setRepertoire(await response.json())
+    } finally {
+      setRepertoireLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (isUnlocked) void loadRepertoire()
+  }, [isUnlocked])
+
+  const learnedSongs = studentName ? repertoire?.students?.[studentName] ?? [] : []
+  const availableSongs = songs.filter((item) => learnedSongs.includes(item.title))
+  const song = availableSongs.find((item) => item.title === songTitle) ?? availableSongs[0] ?? songs[0]
   const tala = talams[song.talam]
   const isTisraGati = song.note === 'Tisra gati'
   const swaramsPerBeat = isTisraGati ? speed * 1.5 : speed
@@ -43,6 +66,30 @@ export default function App() {
     setAnswerStatus(null)
   }
 
+  function unlock(event) {
+    event.preventDefault()
+    if (password.trim().toLowerCase() === 'carnatic') {
+      sessionStorage.setItem('korvai-compass-access', 'granted')
+      setIsUnlocked(true)
+      setPasswordError(false)
+      return
+    }
+    setPasswordError(true)
+  }
+
+  function chooseStudent(nextStudent) {
+    setStudentName(nextStudent)
+    const nextSongs = songs.filter((item) => (repertoire?.students?.[nextStudent] ?? []).includes(item.title))
+    if (nextSongs[0]) setSongTitle(nextSongs[0].title)
+    setLanding(0)
+    setStartGuess(null)
+    setAnswerStatus(null)
+  }
+
+  if (!isUnlocked) {
+    return <main className="access-page"><section className="access-card"><p className="eyebrow">Student practice</p><h1>Korvai Compass</h1><p>Enter the class password to open your practice repertoire.</p><form onSubmit={unlock}><label>Class password<input type="password" value={password} onChange={(event) => { setPassword(event.target.value); setPasswordError(false) }} autoFocus /></label>{passwordError && <p className="password-error">That password didn’t match. Try again.</p>}<button className="answer-button" type="submit">Enter practice room</button></form></section></main>
+  }
+
   return (
     <main>
       <header className="hero">
@@ -51,11 +98,17 @@ export default function App() {
         <p>Choose a familiar krithi, build a pattern, and work out the eDam that lands it in the right place.</p>
       </header>
 
+      <section className="card student-card">
+        <div><p className="eyebrow">Your repertoire</p><h2>Who is practicing?</h2><p>Choose your name to see the songs you have learned.</p></div>
+        <div className="student-controls"><label>Student<select value={studentName} onChange={(event) => chooseStudent(event.target.value)} disabled={repertoireLoading}><option value="">{repertoireLoading ? 'Loading repertoire…' : 'Choose your name'}</option>{Object.keys(repertoire?.students ?? {}).map((name) => <option key={name}>{name}</option>)}</select></label><button className="refresh-button" onClick={() => void loadRepertoire()} disabled={repertoireLoading}>{repertoireLoading ? 'Refreshing…' : 'Refresh repertoire'}</button>{repertoire?.updatedAt && <span>Last synced: {repertoire.updatedAt}</span>}</div>
+      </section>
+
+      {studentName ? <>
       <section className="card setup">
         <label>
           Song
           <select value={songTitle} onChange={(event) => { setSongTitle(event.target.value); setLanding(0); setStartGuess(null); setAnswerStatus(null) }}>
-            {songs.map((item) => <option key={item.title}>{item.title}</option>)}
+            {availableSongs.map((item) => <option key={item.title}>{item.title}</option>)}
           </select>
         </label>
         <div className="tala-summary">
@@ -110,6 +163,7 @@ export default function App() {
         {answerStatus === 'correct' && <div className="answer correct"><span>Correct</span><strong>Start on beat {answer.startBeat}, swaram {answer.startSubdivision}</strong><p>{total} swarams rounds up to {roundedTotal}, so count {forwardCount} subdivision{forwardCount === 1 ? '' : 's'} forward from the landing point.</p></div>}
         {answerStatus === 'incorrect' && <div className="answer incorrect"><span>Not quite</span><strong>Try the forward-count method</strong><div className="math-help"><p><strong>1.</strong> One {song.talam} cycle has {cycleSwarams} swarams: {tala.beats} beats × {swaramsPerBeat} swarams per beat.</p><p><strong>2.</strong> Round {total} up to {roundedTotal}, which is {roundedCycles} whole tala cycle{roundedCycles === 1 ? '' : 's'}.</p><p><strong>3.</strong> {roundedTotal} − {total} = {forwardCount}. Count {forwardCount} subdivision{forwardCount === 1 ? '' : 's'} forward from the landing point. Your choice is {guessDistance} subdivision{guessDistance === 1 ? '' : 's'} forward.</p></div></div>}
       </section>
+      </> : <section className="card choose-student"><h2>Choose your name to begin</h2><p>Your song menu will only show the repertoire marked as learned for you.</p></section>}
       <footer>Initial repertoire drawn from your Krithis and tala reference sheets.</footer>
     </main>
   )

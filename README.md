@@ -12,3 +12,7 @@ npm run dev
 ```
 
 The production site deploys to GitHub Pages when changes are pushed to `main`.
+
+## Repertoire refresh
+
+The app displays only the selected student's learned krithis. To keep the list current automatically, publish only the `Ashwin Songs Taught` tab as a CSV and save its tab-only CSV URL as the `SONGS_TAUGHT_CSV_URL` repository secret. The weekly GitHub Action reads only that tab's Krithis section and publishes a refreshed repertoire list.
