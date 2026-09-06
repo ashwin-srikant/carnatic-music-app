@@ -1,6 +1,12 @@
 name: Sync student repertoire
 
 on:
+  push:
+    paths:
+      - '.github/workflows/sync-repertoire.yml'
+      - 'scripts/sync-repertoire.mjs'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
   schedule:
     - cron: '17 10 * * 1'
   workflow_dispatch:
