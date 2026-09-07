@@ -40,4 +40,6 @@ for (const row of rows.slice(start + 1)) {
   })
 }
 
-await writeFile('public/repertoire.json', `${JSON.stringify({ updatedAt: new Date().toISOString().slice(0, 10), students }, null, 2)}\n`)
+const activeStudents = Object.fromEntries(Object.entries(students).filter(([, learnedSongs]) => learnedSongs.length > 0))
+
+await writeFile('public/repertoire.json', `${JSON.stringify({ updatedAt: new Date().toISOString().slice(0, 10), students: activeStudents }, null, 2)}\n`)
